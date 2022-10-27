@@ -6,10 +6,7 @@ const userController =require("../controllers/controller")
 router.post("/createBook", userController.createBook);
 router.get("/bookList", userController.getBookData);
 router.post("/getBooksInYear", userController.getBooksInYear);
-router.post("/getParticularBooks", userController.getParticularBooks);
 router.get("/getRandom", userController.getRandomBooks);
-
-
-
+router.get("/getXINR", userController.getXINRBooks);
 
 module.exports = router;
