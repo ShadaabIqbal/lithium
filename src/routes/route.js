@@ -1,18 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const userController= require("../controllers/userController")
+const userController = require("../CONTROLLERS/userController");
+const Middleware = require("../middleware/auth");
 
-router.get("/test-me", function (req, res) {
-    res.send("My first ever api!")
-})
-
-router.post("/users", userController.createUser  )
-
-router.post("/login", userController.loginUser)
-
-//The userId is sent by front end
-router.get("/users/:userId", userController.getUserData)
-
-router.put("/users/:userId", userController.updateUser)
+router.post("/createUser", userController.createUser);
+router.post("/login", userController.loginUser);
+router.get("/getUser/:userId", Middleware.commonMiddleware, userController.getUserData);
+router.put("/update/:userId", Middleware.commonMiddleware, userController.updateUser);
+router.delete("/deleteUser/:userId", Middleware.commonMiddleware, userController.deleteUser);
 
 module.exports = router;
