@@ -2,21 +2,12 @@ let axios = require("axios")
 
 
 let getStates = async function (req, res) {
-
-    try {
-        let options = {
-            method: 'get',
-            url: 'https://cdn-api.co-vin.in/api/v2/admin/location/states'
-        }
-        let result = await axios(options);
-        console.log(result)
-        let data = result.data
-        res.status(200).send({ msg: data, status: true })
+    let options = {
+        method: "get",
+        url: `https://cdn-api.co-vin.in/api/v2/admin/location/states`
     }
-    catch (err) {
-        console.log(err)
-        res.status(500).send({ msg: err.message })
-    }
+    let result = await axios(options)
+    res.status(200).send(result.data);
 }
 
 
@@ -78,8 +69,27 @@ let getOtp = async function (req, res) {
     }
 }
 
+const checkAppointmentByDistrict = async function(req,res) {
+try {
+   let districtId = req.query.district_id
+   let date = req.query.date
+   let option = {
+     method: "get",
+     url: `https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByDistrict?district_id=${districtId}&date=${date}`
+   }
+   let result = await axios(option)
+   res.setHeader("shadaab", 122)
+   res.status(200).send({msg: result.data})
+}
+catch(error) {
+    return res.status(500).send({msg: error.message})
+}
+}
+
 
 module.exports.getStates = getStates
 module.exports.getDistricts = getDistricts
 module.exports.getByPin = getByPin
 module.exports.getOtp = getOtp
+module.exports.checkAppointmentByDistrict = checkAppointmentByDistrict
+
