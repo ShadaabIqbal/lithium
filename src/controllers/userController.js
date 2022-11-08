@@ -1,79 +1,89 @@
-const jwt = require("jsonwebtoken");
 const userModel = require("../models/userModel");
+const jwt = require("jsonwebtoken");
+const { findOne } = require("../models/userModel");
 
-const createUser = async function (req, res) {
-  if (req.body && req.object.keys(req.body).length > 0) {
-    let user = await userModel.create(req.body)
-    res.status(201).send({ status: true, data: user })
-  } else {
-    res.status(400).send( {status: false, msg: "Request must contain a body"} )
-  }
-};
-
-const loginUser = async function (req, res) {
-  if (req.body && req.body.emailId && req.body.password) {
-    let user = await userModel.findOne({ name: req.body.emailId, password: req.body.password })
-    if (user) {
-      let payload = { _id: user._id }
-      let token = jwt.sign(payload, "mysecretkey")
-      res.setHeader("x-auth-token", token)
-      res.status(200).send({status: true})
-    } else {
-      res.status(401).send({ status: false, msg: "Invalis username or password" })
+const createUser = async function(req,res) {
+try{
+    let userData = req.body;
+    if ( Object.keys(userData).length != 0 ) {
+        let savedUser = await userModel.create(userData);
+        return res.status(201).send({msg: savedUser});
     }
-  } else {
-    res.status(400).send({ status: false, msg: "Request body must contain emailId and password" })
-  }
-};
+    else return res.status(400).send({msg: "User data is mandatory"});
+} catch (err) {
+    return res.status(500).send({"Error": err, Error: err.message});
+}
+}
 
-const getUserData = async function (req, res) {
-  if (req.validToken._id == req.params.userId) {
-    let user = await userModel.findOne({
-      _id: req.params.userId
-    });
-    if (user) {
-      res.status(200).send({ status: true, data: user})
+const userLogin = async function(req,res) {
+try {
+   let { emailId, password } = req.body;
+   if (!emailId || !password) {
+    return res.status(400).send({msg: "EmailId or Password is missing"});
+   } 
+    let user = await userModel.findOne({emailId, password});
+    if (!user) {
+    return res.status(401).send({msg: "User not found"});
     } else {
-      res.status(404).send({ status: false, msg: "user not foung"});
+        let token = jwt.sign({_id: user._id}, "secretkey11");
+        res.setHeader("x-auth-token", token);
+        return res.status(200).send({msg: token});
     }
-  } else {
-    res.status(403).send({ status: false, msg: "Not authorised"});
-  } 
-};
+} catch(err) {
+    return res.status(500).send({"Error": err, Error: err.message})
+} 
+}
 
-const updateUser = async function (req, res) {
-  let userData = req.body
-  if (req.validToken._id == req.params.userId) {
-    let updatedUser = await userModel.findOneAndUpdate({_id: req.params.userId}, userData);
-    if (updatedUser) {
-      res.status(200).send({ status: true, data: updatedUser})
+const getUserDetails = async function(req,res) {
+try {
+    let userId = req.params.userId;
+    let decodedToken = req.decodedToken;
+    if (decodedToken._id !== userId) {
+        return res.status(401).send({msg: "Not authorised"})
     } else {
-      res.status(404).send({ status: false, msg: "user not found"});
+        let user = await userModel.findById(userId);
+        return res.status(200).send({msg: user});
     }
-  } else {
-    res.status(403).send({ status: false, msg: "Not authorised"});
-  }
-};
+} catch(err) {
+    return res.status(500).send({"Error": err, Error: err.message});
+}
+}
 
-const deleteUser = async function (req, res) {
-  let userData = req.body
-  if (req.validToken._id == req.params.userId) {
-    let updatedUser = await userModel.findOneAndUpdate({_id: req.params.userId}, userData);
-    if (updatedUser) {
-      res.status(200).send({ status: true, data: updatedUser})
-    } else {
-      res.status(404).send({ status: false, msg: "user not found"});
+const updateUserDetails = async function(req,res) {
+try {
+        let userId = req.params.userId;
+        let updatedData = req.body;
+        let decodedToken = req.decodedToken;
+        if (decodedToken._id !== userId) {
+            return res.status(401).send({msg: "Not authorised"})
+        } else {
+            let user = await userModel.findByIdAndUpdate({ _id: userId}, updatedData);
+            return res.status(200).send({msg: user});
+        }
+} catch(err) {
+    return res.status(500).send({"Error": err, Error: err.message});
+}
     }
-  } else {
-    res.status(403).send({ status: false, msg: "Not authorised"});
-  }
-};
 
+    const deleteUserDetails = async function(req,res) {
+    try {
+            let userId = req.params.userId;
+            let updatedData = req.body;
+            let decodedToken = req.decodedToken;
+            if (decodedToken._id !== userId) {
+                return res.status(401).send({msg: "Not authorised"})
+            } else {
+                let user = await userModel.findByIdAndUpdate({ _id: userId}, updatedData);
+                return res.status(200).send({msg: user});
+            }
+    } catch(err) {
+        return res.status(500).send({"Error": err, Error: err.message});
+    }
+        }
 
 
 module.exports.createUser = createUser;
-module.exports.getUserData = getUserData;
-module.exports.updateUser = updateUser;
-module.exports.loginUser = loginUser;
-module.exports.deleteUser = deleteUser;
-
+module.exports.userLogin = userLogin;
+module.exports.getUserDetails = getUserDetails;
+module.exports.updateUserDetails = updateUserDetails;
+module.exports.deleteUserDetails = deleteUserDetails;
